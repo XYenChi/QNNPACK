@@ -25,6 +25,7 @@ extern "C" {
 
 DECLARE_U8RMAX_UKERNEL_FUNCTION(u8rmax_ukernel__neon)
 DECLARE_U8RMAX_UKERNEL_FUNCTION(u8rmax_ukernel__sse2)
+DECLARE_U8RMAX_UKERNEL_FUNCTION(u8rmax_ukernel__scalar)
 
 #ifdef __cplusplus
 } /* extern "C" */

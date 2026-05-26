@@ -29,6 +29,7 @@ extern "C" {
 
 DECLARE_Q8VADD_UKERNEL_FUNCTION(q8vadd_ukernel__neon)
 DECLARE_Q8VADD_UKERNEL_FUNCTION(q8vadd_ukernel__sse2)
+DECLARE_Q8VADD_UKERNEL_FUNCTION(q8vadd_ukernel__scalar)
 
 #ifdef __cplusplus
 } /* extern "C" */

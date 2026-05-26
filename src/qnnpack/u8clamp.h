@@ -27,6 +27,7 @@ extern "C" {
 
 DECLARE_U8CLAMP_UKERNEL_FUNCTION(u8clamp_ukernel__neon)
 DECLARE_U8CLAMP_UKERNEL_FUNCTION(u8clamp_ukernel__sse2)
+DECLARE_U8CLAMP_UKERNEL_FUNCTION(u8clamp_ukernel__scalar)
 
 #ifdef __cplusplus
 } /* extern "C" */

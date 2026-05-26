@@ -33,6 +33,7 @@ extern "C" {
 
 DECLARE_Q8MPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_mp8x9p8q__neon)
 DECLARE_Q8MPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_mp8x9p8q__sse2)
+DECLARE_Q8MPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_mp8x9p8q__scalar)
 
 #define DECLARE_Q8UPAVGPOOL_UKERNEL_FUNCTION(fn_name)                     \
   QNNP_INTERNAL void fn_name(                                             \
@@ -50,6 +51,8 @@ DECLARE_Q8UPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_up8x9__neon)
 DECLARE_Q8UPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_up8xm__neon)
 DECLARE_Q8UPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_up8x9__sse2)
 DECLARE_Q8UPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_up8xm__sse2)
+DECLARE_Q8UPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_up8x9__scalar)
+DECLARE_Q8UPAVGPOOL_UKERNEL_FUNCTION(q8avgpool_ukernel_up8xm__scalar)
 
 #ifdef __cplusplus
 } /* extern "C" */

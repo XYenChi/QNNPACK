@@ -235,6 +235,59 @@ static void init(void) {
   qnnp_params.u8rmax = u8rmax_ukernel__sse2;
   qnnp_params.u8lut32norm = u8lut32norm_ukernel__scalar;
   qnnp_params.x8lut = x8lut_ukernel__scalar;
+#elif defined(__riscv) && (__riscv_xlen == 64)
+  /* RISC-V 64-bit: portable scalar fallback (autovectorizable). */
+  qnnp_params.q8conv = (struct q8conv_parameters) {
+      .gemm = q8gemm_ukernel_4x8__scalar,
+      .conv = q8conv_ukernel_4x8__scalar,
+      .mr = 4,
+      .nr = 8,
+      .kr = 1,
+  };
+  qnnp_params.q8conv_xzp = (struct q8conv_xzp_parameters) {
+      .kthreshold = SIZE_MAX,
+  };
+  qnnp_params.q8dw9 = (struct q8dwconv_up_parameters) {
+      .updw = q8dwconv_ukernel_up8x9__scalar,
+      .cr = 8,
+  };
+  qnnp_params.q8dw25 = (struct q8dwconv_mp_parameters) {
+      .mpdw = q8dwconv_ukernel_mp8x25__scalar,
+      .cr = 8,
+  };
+  qnnp_params.q8vadd = q8vadd_ukernel__scalar;
+  qnnp_params.q8gavgpool = (struct q8gavgpool_parameters) {
+      .ltnr = q8gavgpool_ukernel_up8xm__scalar,
+      .genr_lemr = q8gavgpool_ukernel_up8x7__scalar,
+      .genr_gtmr = q8gavgpool_ukernel_mp8x7p7q__scalar,
+      .mr = 7,
+      .nr = 8,
+  };
+  qnnp_params.q8avgpool = (struct q8avgpool_parameters) {
+      .ltkr = q8avgpool_ukernel_up8xm__scalar,
+      .gekr_lemr = q8avgpool_ukernel_up8x9__scalar,
+      .gekr_gtmr = q8avgpool_ukernel_mp8x9p8q__scalar,
+      .mr = 9,
+      .qr = 8,
+      .kr = 8,
+  };
+  qnnp_params.u8maxpool = (struct u8maxpool_parameters) {
+      .ltkr = u8maxpool_ukernel_sub16__scalar,
+      .gekr = u8maxpool_ukernel_16x9p8q__scalar,
+      .mr = 9,
+      .qr = 8,
+      .kr = 16,
+  };
+  qnnp_params.x8zip = (struct x8zip_parameters) {
+      .x2 = qnnp_x8zip_x2__scalar,
+      .x3 = qnnp_x8zip_x3__scalar,
+      .x4 = qnnp_x8zip_x4__scalar,
+      .xm = qnnp_x8zip_xm__scalar,
+  };
+  qnnp_params.u8clamp = u8clamp_ukernel__scalar;
+  qnnp_params.u8rmax = u8rmax_ukernel__scalar;
+  qnnp_params.u8lut32norm = u8lut32norm_ukernel__scalar;
+  qnnp_params.x8lut = x8lut_ukernel__scalar;
 #else
   #error "Unsupported architecture"
 #endif
@@ -242,9 +295,14 @@ static void init(void) {
 }
 
 enum qnnp_status qnnp_initialize(void) {
+#if defined(__riscv) && (__riscv_xlen == 64)
+  /* cpuinfo may not support RISC-V detection; don't fail if it returns false. */
+  (void) cpuinfo_initialize();
+#else
   if (!cpuinfo_initialize()) {
     return qnnp_status_out_of_memory;
   }
+#endif
 #ifdef _MSC_VER
   InitOnceExecuteOnce(&init_guard, init_win, NULL, NULL);
 #else
