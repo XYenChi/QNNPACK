@@ -1,7 +1,7 @@
 # QNNPACK
 QNNPACK (Quantized Neural Networks PACKage) is a mobile-optimized library for low-precision high-performance neural network inference. QNNPACK provides implementation of common neural network operators on quantized 8-bit tensors.
 
-QNNPACK is not intended to be directly used by machine learning researchers; instead it provides low-level performance primitives for high-level deep learning frameworks. As of today, QNNPACK is integrated in [PyTorch 1.0](https://github.com/pytorch/pytorch) with Caffe2 graph representation.
+QNNPACK provides low-level performance primitives for deep learning frameworks. It was integrated into PyTorch 1.0 through Caffe2. This standalone fork adds a portable scalar backend for Linux on 64-bit RISC-V.
 
 ## Operator Coverage
 
@@ -23,11 +23,47 @@ Currently implemented and planned for implementation operators are below:
 
 ## Building
 
-QNNPACK provides standard CMake-based build scripts.
+QNNPACK requires CMake 3.18 or later and a C/C++ toolchain. Benchmarks are enabled by default and use Google Benchmark 1.9.3, which requires a C++17 compiler. Set `-DQNNPACK_BUILD_BENCHMARKS=OFF` to build without benchmarks.
 
 ### Native compilation
 
 Users are recommended to use `scripts/build-local.sh` script to build QNNPACK for the host machine.
+
+### Native compilation on Linux (RISC-V 64-bit)
+
+The CMake build selects portable scalar microkernels on `riscv64`. The commands below target RV64GC and require no RISC-V Vector extension.
+
+For the tested dependency versions, use a PyTorch source checkout at commit `1d28e3a704d1d634d240e8fe0566c0c6df975458`. QNNPACK uses six of its `third_party` submodules directly. [PyTorch dependency snapshot](https://github.com/pytorch/pytorch/tree/1d28e3a704d1d634d240e8fe0566c0c6df975458/third_party)
+
+CMake fetches RuyiAI cpuinfo at commit `eb78f0f3b2926e69405ce3c2b5abd5ca5f595d98`. To use an existing checkout of that commit, pass `-DCPUINFO_SOURCE_DIR=/path/to/cpuinfo`. [Pinned RuyiAI cpuinfo source](https://github.com/RuyiAI-Stack/cpuinfo/tree/eb78f0f3b2926e69405ce3c2b5abd5ca5f595d98)
+
+From the QNNPACK repository root, set `PYTORCH_SOURCE` to the absolute path of that checkout and run the following with Ninja installed.
+
+```bash
+PYTORCH_SOURCE=/path/to/pytorch
+git -C "$PYTORCH_SOURCE" submodule update --init -- \
+  third_party/FP16 third_party/FXdiv third_party/psimd \
+  third_party/pthreadpool third_party/googletest third_party/benchmark
+
+cmake -S . -B build/rv64 -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_C_FLAGS=-march=rv64gc -DCMAKE_CXX_FLAGS=-march=rv64gc \
+  -DQNNPACK_BUILD_TESTS=ON -DQNNPACK_BUILD_BENCHMARKS=ON \
+  -DCONFU_DEPENDENCIES_SOURCE_DIR="$PWD/build/rv64/deps-src" \
+  -DFP16_SOURCE_DIR="$PYTORCH_SOURCE/third_party/FP16" \
+  -DFXDIV_SOURCE_DIR="$PYTORCH_SOURCE/third_party/FXdiv" \
+  -DPSIMD_SOURCE_DIR="$PYTORCH_SOURCE/third_party/psimd" \
+  -DPTHREADPOOL_SOURCE_DIR="$PYTORCH_SOURCE/third_party/pthreadpool" \
+  -DGOOGLETEST_SOURCE_DIR="$PYTORCH_SOURCE/third_party/googletest" \
+  -DGOOGLEBENCHMARK_SOURCE_DIR="$PYTORCH_SOURCE/third_party/benchmark"
+cmake --build build/rv64 --parallel
+(cd build/rv64 && ctest --output-on-failure)
+./build/rv64/scalar-microkernels-test
+./build/rv64/q8gemm-bench \
+  --benchmark_filter='4x8__scalar/M:225/N:8/K:8$' --benchmark_min_time=0.01s
+```
+
+SG2044 and a second native RV64 host each passed 27 CTest entries. The scalar microkernel test ran 18 cases on each host, and the Q8GEMM benchmark above ran successfully. An x86-64 Arch Linux WSL build passed 26 CTest entries.
 
 ### Cross-compilation for Android
 
@@ -55,7 +91,7 @@ To cross-compile for iOS, clone [ios-cmake](https://github.com/leetal/ios-cmake)
 | i386         | `scripts/build-ios-i386.sh`   | iPhone Simulator (32-bit) |
 | x86_64       | `scripts/build-ios-x86_64.sh` | iPhone Simulator (64-bit) |
 
-## End-to-End Benchmarking
+## Historical End-to-End Benchmarks (PyTorch 1.0 and Caffe2)
 
 Caffe2 backend of PyTorch 1.0 natively integrates QNNPACK, and provides a [pre-trained quantized MobileNet v2 model](https://github.com/caffe2/models/tree/master/mobilenet_v2_quantized). Below are instructions for benchmarking this model end-to-end with QNNPACK.
 
