@@ -4,7 +4,13 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.18 FATAL_ERROR)
+
+# CMake 4 no longer accepts policy compatibility older than 3.5 in legacy
+# bundled subprojects.
+IF(NOT CMAKE_VERSION VERSION_LESS 4.0 AND NOT DEFINED CMAKE_POLICY_VERSION_MINIMUM)
+  SET(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+ENDIF()
 
 INCLUDE(GNUInstallDirs)
 
@@ -37,7 +43,7 @@ IF(NOT CMAKE_SYSTEM_PROCESSOR)
   ELSE()
     MESSAGE(FATAL_ERROR "CMAKE_SYSTEM_PROCESSOR is not defined")
   ENDIF()
-ELSEIF(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|x86_64|armv[5-8].*|aarch64)$")
+ELSEIF(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|x86_64|armv[5-8].*|aarch64|riscv64)$")
   MESSAGE(FATAL_ERROR "Unrecognized CMAKE_SYSTEM_PROCESSOR = ${CMAKE_SYSTEM_PROCESSOR}")
 ENDIF()
 
@@ -152,6 +158,19 @@ SET(QNNPACK_SCALAR_UKERNELS
   src/u8lut32norm/scalar.c
   src/x8lut/scalar.c)
 
+SET(QNNPACK_RISCV_SCALAR_UKERNELS
+  src/q8avgpool/scalar.c
+  src/q8conv/scalar.c
+  src/q8dwconv/up8x9-scalar.c
+  src/q8dwconv/mp8x25-scalar.c
+  src/q8gavgpool/scalar.c
+  src/q8gemm/scalar.c
+  src/q8vadd/scalar.c
+  src/u8clamp/scalar.c
+  src/u8maxpool/scalar.c
+  src/u8rmax/scalar.c
+  src/x8zip/scalar.c)
+
 SET(QNNPACK_PSIMD_UKERNELS
   src/sgemm/6x8-psimd.c)
 
@@ -228,6 +247,9 @@ ENDIF()
 IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|x86_64)$" OR IOS_ARCH MATCHES "^(i386|x86_64)$")
   LIST(APPEND QNNPACK_UKERNELS ${QNNPACK_X86_SSE2_UKERNELS})
 ENDIF()
+IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
+  LIST(APPEND QNNPACK_UKERNELS ${QNNPACK_RISCV_SCALAR_UKERNELS})
+ENDIF()
 
 IF(QNNPACK_LIBRARY_TYPE STREQUAL "default")
   ADD_LIBRARY(qnnpack ${QNNPACK_INIT_SRCS} ${QNNPACK_EXEC_SRCS} ${QNNPACK_UKERNELS})
@@ -255,6 +277,9 @@ IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR IOS_ARCH MATCHES "^arm64.*")
 ENDIF()
 IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|x86_64)$" OR IOS_ARCH MATCHES "^(i386|x86_64)$")
   SET_PROPERTY(SOURCE ${QNNPACK_X86_SSE2_UKERNELS} APPEND_STRING PROPERTY COMPILE_FLAGS " -O2 -msse2 ")
+ENDIF()
+IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
+  SET_PROPERTY(SOURCE ${QNNPACK_RISCV_SCALAR_UKERNELS} APPEND_STRING PROPERTY COMPILE_FLAGS " -O2 ")
 ENDIF()
 IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^armv[5-8]" OR IOS_ARCH MATCHES "^armv7")
   SET_PROPERTY(SOURCE ${QNNPACK_PSIMD_UKERNELS} APPEND_STRING PROPERTY COMPILE_FLAGS " -O2 -marm -mfpu=neon ")
@@ -589,6 +614,17 @@ IF(QNNPACK_BUILD_TESTS)
   TARGET_INCLUDE_DIRECTORIES(sgemm-test PRIVATE src test)
   TARGET_LINK_LIBRARIES(sgemm-test PRIVATE qnnpack cpuinfo fp16 gtest gtest_main)
   ADD_TEST(sgemm-test sgemm-test)
+
+  IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
+    ADD_EXECUTABLE(scalar-microkernels-test test/scalar-microkernels.cc)
+    SET_TARGET_PROPERTIES(scalar-microkernels-test PROPERTIES
+      CXX_STANDARD 11
+      CXX_STANDARD_REQUIRED YES
+      CXX_EXTENSIONS NO)
+    TARGET_INCLUDE_DIRECTORIES(scalar-microkernels-test PRIVATE src test)
+    TARGET_LINK_LIBRARIES(scalar-microkernels-test PRIVATE qnnpack cpuinfo fp16 gtest gtest_main)
+    ADD_TEST(scalar-microkernels-test scalar-microkernels-test)
+  ENDIF()
 ENDIF()
 
 # ---[ QNNPACK micro-benchmarks

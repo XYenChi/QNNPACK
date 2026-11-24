@@ -30,7 +30,9 @@ DECLARE_XZIPC_UKERNEL_FUNCTION(qnnp_x8zip_x3__neon)
 DECLARE_XZIPC_UKERNEL_FUNCTION(qnnp_x8zip_x3__sse2)
 DECLARE_XZIPC_UKERNEL_FUNCTION(qnnp_x8zip_x4__neon)
 DECLARE_XZIPC_UKERNEL_FUNCTION(qnnp_x8zip_x4__sse2)
-
+DECLARE_XZIPC_UKERNEL_FUNCTION(qnnp_x8zip_x2__scalar)
+DECLARE_XZIPC_UKERNEL_FUNCTION(qnnp_x8zip_x3__scalar)
+DECLARE_XZIPC_UKERNEL_FUNCTION(qnnp_x8zip_x4__scalar)
 
 #define DECLARE_XZIPV_UKERNEL_FUNCTION(fn_name) \
   QNNP_INTERNAL void fn_name(                   \
@@ -41,6 +43,7 @@ DECLARE_XZIPC_UKERNEL_FUNCTION(qnnp_x8zip_x4__sse2)
 
 DECLARE_XZIPV_UKERNEL_FUNCTION(qnnp_x8zip_xm__neon)
 DECLARE_XZIPV_UKERNEL_FUNCTION(qnnp_x8zip_xm__sse2)
+DECLARE_XZIPV_UKERNEL_FUNCTION(qnnp_x8zip_xm__scalar)
 
 #ifdef __cplusplus
 } /* extern "C" */

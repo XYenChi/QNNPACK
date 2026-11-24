@@ -33,6 +33,8 @@ DECLARE_U8MAXPOOL_UKERNEL_FUNCTION(u8maxpool_ukernel_16x9p8q__neon)
 DECLARE_U8MAXPOOL_UKERNEL_FUNCTION(u8maxpool_ukernel_16x9p8q__sse2)
 DECLARE_U8MAXPOOL_UKERNEL_FUNCTION(u8maxpool_ukernel_sub16__neon)
 DECLARE_U8MAXPOOL_UKERNEL_FUNCTION(u8maxpool_ukernel_sub16__sse2)
+DECLARE_U8MAXPOOL_UKERNEL_FUNCTION(u8maxpool_ukernel_16x9p8q__scalar)
+DECLARE_U8MAXPOOL_UKERNEL_FUNCTION(u8maxpool_ukernel_sub16__scalar)
 
 #ifdef __cplusplus
 } /* extern "C" */

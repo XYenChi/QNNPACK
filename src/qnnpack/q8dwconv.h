@@ -32,6 +32,7 @@ extern "C" {
 DECLARE_Q8UPDWCONV_UKERNEL_FUNCTION(q8dwconv_ukernel_up8x9__neon)
 DECLARE_Q8UPDWCONV_UKERNEL_FUNCTION(q8dwconv_ukernel_up8x9__aarch32_neon)
 DECLARE_Q8UPDWCONV_UKERNEL_FUNCTION(q8dwconv_ukernel_up8x9__sse2)
+DECLARE_Q8UPDWCONV_UKERNEL_FUNCTION(q8dwconv_ukernel_up8x9__scalar)
 
 #define DECLARE_Q8MPDWCONV_UKERNEL_FUNCTION(fn_name)                 \
   QNNP_INTERNAL void fn_name(                                        \
@@ -47,6 +48,7 @@ DECLARE_Q8UPDWCONV_UKERNEL_FUNCTION(q8dwconv_ukernel_up8x9__sse2)
 
 DECLARE_Q8MPDWCONV_UKERNEL_FUNCTION(q8dwconv_ukernel_mp8x25__neon)
 DECLARE_Q8MPDWCONV_UKERNEL_FUNCTION(q8dwconv_ukernel_mp8x25__sse2)
+DECLARE_Q8MPDWCONV_UKERNEL_FUNCTION(q8dwconv_ukernel_mp8x25__scalar)
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -4,14 +4,14 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5 FATAL_ERROR)
 
 PROJECT(cpuinfo-download NONE)
 
 INCLUDE(ExternalProject)
 ExternalProject_Add(cpuinfo
-	GIT_REPOSITORY https://github.com/Maratyszcza/cpuinfo.git
-	GIT_TAG master
+	GIT_REPOSITORY https://github.com/RuyiAI-Stack/cpuinfo.git
+	GIT_TAG eb78f0f3b2926e69405ce3c2b5abd5ca5f595d98
 	SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/cpuinfo"
 	BINARY_DIR "${CONFU_DEPENDENCIES_BINARY_DIR}/cpuinfo"
 	CONFIGURE_COMMAND ""

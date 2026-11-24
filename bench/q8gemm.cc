@@ -850,6 +850,31 @@ BENCHMARK_REGISTER_F(COMPUTE_ROW_SUM_Op, compute_row_sum_neon)->Apply(GemmArgume
 
 #endif
 
+#if CPUINFO_ARCH_RISCV64
+BENCHMARK_TEMPLATE_DEFINE_F(Q8GEMM_Op, 4x8__scalar, 4, 8, 8, 1)(benchmark::State& state)
+{
+  for (auto _ : state) {
+    for (uint32_t m = 0; m < mc(); m += mr()) {
+      const uint32_t mrr = min(mc() - m, mr());
+      for (uint32_t n = 0; n < nc(); n += nr()) {
+        const uint32_t nrr = min(nc() - n, nr());
+        q8gemm_ukernel_4x8__scalar(
+          mrr, nrr, kc(),
+          a() + m * kc(), kc() * sizeof(uint8_t),
+          w() + n * (kcStride() * sizeof(uint8_t) + sizeof(int32_t)),
+          c() + m * nc() + n, nc() * sizeof(uint8_t),
+          quantizationParams());
+      }
+    }
+  }
+}
+
+BENCHMARK_REGISTER_F(Q8GEMM_Op, 4x8__scalar)->Apply(ShuffleNetV1G1GemmArguments);
+BENCHMARK_REGISTER_F(Q8GEMM_Op, 4x8__scalar)->Apply(MobileNetV1GemmArguments);
+BENCHMARK_REGISTER_F(Q8GEMM_Op, 4x8__scalar)->Apply(SqueezeNetV10GemmArguments);
+BENCHMARK_REGISTER_F(Q8GEMM_Op, 4x8__scalar)->Apply(GemmArguments);
+#endif
+
 #if CPUINFO_ARCH_X86 || CPUINFO_ARCH_X86_64
 BENCHMARK_TEMPLATE_F(Q8GEMM_L1, 2x4c8__sse2, 2, 4, 1, 8)(benchmark::State& state)
 {
